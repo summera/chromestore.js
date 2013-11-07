@@ -56,7 +56,6 @@ var ChromeStore = (function(fileSchema) {
 		init: function(requestedBytes) {
 			getGranted(requestedBytes);
 
-			
 		},
 
 		createDir: function(path) {
@@ -98,11 +97,16 @@ var ChromeStore = (function(fileSchema) {
 		},
 
 		createReceiver: function() {
+			var receiver = new DataReceiver();
 
+			return receiver;
 		},
 
 		getData: function(url) {
 
+			var receiver = createReceiver();
+
+			return receiver.getData(url, function(data){return data});
 		},
 
 		getAndWrite: function() {
@@ -134,7 +138,7 @@ var FileWriter = (function(filesystem) {
 var DataReceiver = (function() {
 
 	return {
-		getData: function(url){
+		getData: function(url, callback){
 
 			var xhr = new XMLHttpRequest(); 
 			xhr.open('GET', url, true); 
@@ -142,7 +146,7 @@ var DataReceiver = (function() {
 
 			xhr.onload = function(e) {
 				if(this.status == 200) {
-					return this.response;
+					callback(this.response);
 				}
 			}
 		}
