@@ -66,8 +66,10 @@ var ChromeStore = (function(fileSchema) {
 
 		},
 
-		createFile: function(path) {
-
+		createFile: function(path, create, exclusive, callback) {
+			fs.root.getFile(path, {create: true, exclusive: true}, function(fileEntry) {
+				callback(fileEntry);
+			}, errorHandler);
 		},
 
 		renameDir: function(path) {
@@ -75,7 +77,13 @@ var ChromeStore = (function(fileSchema) {
 		},
 
 		deleteFile: function(path) {
+			fs.root.getFile(path, {create: false}, function(fileEntry) {
 
+				fileEntry.remove(function() {
+				
+				}, errorHandler);
+
+		  	}, errorHandler);
 		},
 
 		renameFile: function(path) {
