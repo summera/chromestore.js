@@ -88,11 +88,13 @@ var ChromeStore = (function(fileSchema) {
 		},
 
 		createWriter: function() {
-
+			var fw = new FileWriter(fs);
+			return fw;
 		},
 
-		write: function(path) {
-
+		write: function(fileName,fileType,data,createFlag,path) {
+			var fw = this.createWriter();
+			fw.writeData(fileName,fileType,data,createFlag);
 		},
 
 		createReceiver: function() {
@@ -119,8 +121,14 @@ var ChromeStore = (function(fileSchema) {
 
 });
 
-var FileWriter = (function() {
+var FileWriter = (function(filesystem) {
+	var fs = filesystem; 
 
+	return {
+		writeData: function(fileName,fileType,data,createFlag){
+			console.log(fileName+''+fileType+''+data+''+createFlag);
+		}
+	}
 });
 
 var DataReceiver = (function() {
