@@ -28,32 +28,38 @@ var ChromeStore = (function(fileSchema) {
 		console.log('Error: ' + msg);
 	}
 
-
-	function requestFS(grantedBytes) {
-		window.webkitRequestFileSystem(window.PERSISTENT, grantedBytes, function(filesystem) {
-			fs = filesystem;
-			console.log ('fs: ', arguments); // I see this on Chrome 27 in Ubuntu
-			console.log("Granted Bytes: " + grantedBytes);
-			console.log("**********************************");
-		}, errorHandler);
-	}
-
-	function getGranted(requestedBytes){
-		navigator.webkitPersistentStorage.requestQuota (requestedBytes, function(grantedBytes) {
-			console.log("==================================");
-			console.log("PERSISTENT STORAGE");
-			console.log("==================================");
-
-			console.log("**********************************");
-			console.log ('requestQuota: ', arguments);
-			
-			requestFS(grantedBytes);
-
-		}, errorHandler);
-	}
-
 	return {
-		init: function(requestedBytes) {
+		init: function(requestedBytes, callback) {
+
+			//Store this in that so it can be used inside nested functions
+			var that = this; 
+
+			function requestFS(grantedBytes) {
+				window.webkitRequestFileSystem(window.PERSISTENT, grantedBytes, function(filesystem) {
+					fs = filesystem;
+					console.log ('fs: ', arguments); // I see this on Chrome 27 in Ubuntu
+					console.log("Granted Bytes: " + grantedBytes);
+					console.log("**********************************");
+
+					callback(that); //Execute callback
+
+				}, errorHandler);
+			}
+
+			function getGranted(requestedBytes){
+				navigator.webkitPersistentStorage.requestQuota (requestedBytes, function(grantedBytes) {
+					console.log("==================================");
+					console.log("PERSISTENT STORAGE");
+					console.log("==================================");
+					console.log("**********************************");
+					console.log ('requestQuota: ', arguments);
+
+					requestFS(grantedBytes, callback);
+
+				}, errorHandler);
+			}
+
+
 			getGranted(requestedBytes);
 
 		},
