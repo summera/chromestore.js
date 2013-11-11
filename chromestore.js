@@ -74,7 +74,6 @@ var ChromeStore = (function(fileSchema) {
 			}
 
 			rootDir.getDirectory(path[0], {create: true}, function(dirEntry) {
-				if(path[0]) console.log(path[0]+' Directory created.');
 				// Recursively add the new subfolder (if we still have another to create).
 				if (path.length) {
 					that.createDir(dirEntry,path.slice(1),callback);
@@ -98,14 +97,31 @@ var ChromeStore = (function(fileSchema) {
 			}, errorHandler);
 		},
 
+		renameDir: function(path,newName,callback) {
+			var rootDir = fs.root, that = this;
+			var pathArray = path.split('/'), pLength = pathArray.length, pathToParent;
+
+			for(var i = 0; i<=pLength-2; i++){
+				pathToParent = pathArray[i]+"/";
+			}
+			rootDir.getDirectory(pathToParent,{},function(parentDir){
+				pathToParent = parentDir;
+			},errorHandler);
+
+			rootDir.getDirectory(path,{},function(dirEntry){
+				dirEntry.moveTo(pathToParent,newName,function() {
+					console.log(path + ' Directory renamed.');
+					
+					//call callback function if specified
+					if(callback) callback();
+				}, errorHandler);
+			}, errorHandler);
+		},
+
 		createFile: function(path, create, exclusive, callback) {
 			fs.root.getFile(path, {create: true, exclusive: true}, function(fileEntry) {
 				callback(fileEntry);
 			}, errorHandler);
-		},
-
-		renameDir: function(path) {
-
 		},
 
 		deleteFile: function(path) {
