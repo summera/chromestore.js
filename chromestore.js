@@ -64,12 +64,38 @@ var ChromeStore = (function(fileSchema) {
 
 		},
 
-		createDir: function(path) {
+		createDir: function(root,path,callback) {
+			path = (typeof path === 'object' ? path : path.split('/'));
+			var rootDir = root ? root : fs.root, that = this;
 
+			// Throw out './' or '/' and move on to prevent something like '/foo/.//bar'.
+			if (path[0] == '.' || path[0] == '') {
+				path = path.slice(1);
+			}
+
+			rootDir.getDirectory(path[0], {create: true}, function(dirEntry) {
+				if(path[0]) console.log(path[0]+' Directory created.');
+				// Recursively add the new subfolder (if we still have another to create).
+				if (path.length) {
+					that.createDir(dirEntry,path.slice(1),callback);
+				}
+				else {
+					if(callback) callback();
+				}
+			}, errorHandler);
 		},
 
-		deleteDir: function(path) {
+		deleteDir: function(path,callback){
+			var rootDir = fs.root, that = this;
 
+			rootDir.getDirectory(path,{},function(dirEntry){
+				dirEntry.remove(function(){
+					console.log('Directory removed.');
+					
+					//call callback function if specified
+					if(callback) callback();
+				}, errorHandler);
+			}, errorHandler);
 		},
 
 		createFile: function(path, create, exclusive, callback) {
@@ -105,7 +131,7 @@ var ChromeStore = (function(fileSchema) {
 			return fw;
 		},
 
-		write: function(fileName,fileType,data,createFlag,path) {
+		write: function(fileName,fileType,data,createFlag) {
 			var fw = this.createWriter();
 			fw.writeData(fileName,fileType,data,createFlag);
 		},

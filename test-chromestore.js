@@ -1,9 +1,19 @@
 var cs;
 
 
-//test write dummy file
+//test write dummy file and dir
 function testwrite(cs){
-	var writer = cs.write('media.mp4','video/mp4','aaa',true,'');	
+	//createDir(root, path, [callback])
+	cs.createDir('', 'genres/action/', function(){
+		//write(path, type, data, createFlag)
+		var writer = cs.write('/genres/action/media.mp4','video/mp4','aaa',true,'');
+	});
+	
+	//create another dir and delete it
+	cs.createDir('', 'genres/drama/', function(){
+		//deleteDir(path,[callback])
+		cs.deleteDir('/genres/drama');
+	});
 }
 
 function tests (cs){
