@@ -51,4 +51,7 @@ window.onload = function(){
 	//initializeChromestore(tests);
 	var cs = new ChromeStore();
 	cs.init(1024*1024, tests);
+	$("#purgeButton").on("click",function(){
+		cs.purge();
+	});
 }
