@@ -55,6 +55,24 @@ function testRenameFile(cs){
 	});
 }
 
+function testGetData(cs){
+	var url = 'https://s3.amazonaws.com/lr-chaos/videos/encoded_files/000/000/548/original/Hands-Elegant-Road-04-22-13.mp4';
+	console.log('Retrieving data from ' + url);
+	cs.getData(url, function(data){
+		
+		console.log('Bytes Received from ' + url + ': ' + data.byteLength);
+	});
+}
+
+function testGetAndWrite(cs){
+	var url = 'https://s3.amazonaws.com/lr-chaos/videos/encoded_files/000/000/548/original/Hands-Elegant-Road-04-22-13.mp4';
+	console.log('Retrieving data from ' + url);
+	cs.getAndWrite(url, 'video.mp4', 'video/mp4', true, function(){
+		
+		console.log('Write video complete');
+	});
+}
+
 function tests(cs){
 	testwrite(cs);
 	testCreateDir(cs);
@@ -63,13 +81,16 @@ function tests(cs){
 	testCreateFile(cs);
 	testDeleteFile(cs);
 	testRenameFile(cs);
+	cs.isPersistentAvailable();
+	//testGetData(cs);
+	testGetAndWrite(cs);
 }
 
 
 window.onload = function(){
 	//initializeChromestore(tests);
 	var cs = new ChromeStore();
-	cs.init(1024*1024, tests);
+	cs.init(1024*1024*1024, tests);
 	$("#purgeButton").on("click",function(){
 		cs.purge();
 	});

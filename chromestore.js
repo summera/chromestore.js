@@ -166,8 +166,10 @@ var ChromeStore = (function(fileSchema) {
 			}, errorHandler);
 		},
 
-		isPersistentAvailable: function() {
-
+		isPersistentAvailable: function(callback) {
+			navigator.webkitPersistentStorage.queryUsageAndQuota(function (used, remaining){
+				if(callback){callback(used, remaining);}
+			});
 		},
 
 		createWriter: function() {
@@ -175,26 +177,28 @@ var ChromeStore = (function(fileSchema) {
 			return fw;
 		},
 
-		write: function(fileName, fileType, data, createFlag, callback) {
+		write: function(path, fileType, data, createFlag, callback) {
 			var fw = this.createWriter();
-			fw.writeData(fileName, fileType, data, createFlag, callback);
+			fw.writeData(path, fileType, data, createFlag, callback);
 		},
 
 		createReceiver: function() {
 			var receiver = new DataReceiver();
-
 			return receiver;
 		},
 
-		getData: function(url) {
+		getData: function(url, callback) {
 
-			var receiver = createReceiver();
+			var receiver = this.createReceiver();
 
-			return receiver.getData(url, function(data){return data});
+			receiver.getData(url, callback);
 		},
 
-		getAndWrite: function() {
-
+		getAndWrite: function(url, path, fileType, createFlag, callback) {
+			var that = this;
+			this.getData(url, function(data){
+				that.write(path, fileType, data, createFlag, callback)
+			});
 		},
 
 		purge: function() {
@@ -257,8 +261,8 @@ var FileWriter = (function(filesystem) {
 	}
 
 	return {
-		writeData: function(fileName, fileType, data, createFlag, callback){
-			fs.root.getFile(fileName, {create: createFlag}, function(fileEntry) {
+		writeData: function(path, fileType, data, createFlag, callback){
+			fs.root.getFile(path, {create: createFlag}, function(fileEntry) {
 
 				// Create a FileWriter object for our FileEntry (log.txt).
 				fileEntry.createWriter(function(fileWriter) {
@@ -288,7 +292,6 @@ var DataReceiver = (function() {
 
 	return {
 		getData: function(url, callback){
-
 			var xhr = new XMLHttpRequest(); 
 			xhr.open('GET', url, true); 
 			xhr.responseType = "arraybuffer";
@@ -298,6 +301,8 @@ var DataReceiver = (function() {
 					callback(this.response);
 				}
 			}
+
+			xhr.send();
 		}
 	}
 
