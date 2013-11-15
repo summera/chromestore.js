@@ -14,7 +14,9 @@ function testwrite(cs){
 //Test creating directory
 function testCreateDir(cs){
 	//create dir
-	cs.createDir('genres/drama', function(){});
+	cs.createDir('genres/drama', function(){
+		cs.createDir('genres/drama/extremedrama');
+	});
 
 	//create dir 
 	cs.createDir('genres/rock', function(){});
@@ -91,7 +93,7 @@ function tests(cs){
 	testRenameFile(cs);
 	cs.isPersistentAvailable();
 	//testGetData(cs);
-	testGetAndWrite(cs);
+	//testGetAndWrite(cs);
 }
 
 
@@ -101,5 +103,13 @@ window.onload = function(){
 	cs.init(1024*1024*1024, tests);
 	$("#purgeButton").on("click",function(){
 		cs.purge();
+	});
+
+	$("#getDataButton").on("click",function(){
+		testGetData(cs);
+	});
+
+	$("#getAndWriteDataButton").on("click",function(){
+		testGetAndWrite(cs);
 	});
 }
