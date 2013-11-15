@@ -212,7 +212,16 @@ var ChromeStore = (function(fileSchema) {
 		},
 
 		listFiles: function(path) {
+			var dirReader = fs.root.createReader();
+			dirReader.readEntries(function(entries) {
+				if (!entries.length) {
+					console.log('Filesystem is empty.');
+				}
 
+				for (var i = 0, entry; entry = entries[i]; ++i) {
+					console.log(entry.name);
+				}
+			}, errorHandler);
 		}
 
 	};
