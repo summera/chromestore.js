@@ -7,14 +7,16 @@
 	</head>
 
 	<body>
-
-		<h1> LiveRiot Chromestore Demo </h1>
-		<video id="vid" src="" controls></video>
-		<!--<input id="f" type="file"/>-->
-		<input id="url" placeholder="Input URL" type="text"/>
-		<input id="fb" type="button" value="Submit"/>
-		<input id="purgeButton" type="button" value="Purge"/>
-		<button> Download to Local Cache </button>
+		<div style="text-align: center;">
+			<h1> LiveRiot Chromestore Demo </h1>
+			<div><video id="vid" src="" controls></video></div>
+			<!--<input id="f" type="file"/>-->
+			<div>
+				<input id="url" placeholder="Input URL" type="text"/>
+				<input id="fb" type="button" class="btn btn-success" value="Submit"/>
+			</div>	
+			<input id="downloadToLocal" type="button" class="btn btn-primary" value="Download to Local Cache"/>
+		</div>
 	</body>
 
 	<script>
