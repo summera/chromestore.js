@@ -2,24 +2,24 @@ var ChromeStore = (function(fileSchema) {
 	fileSchema = typeof fileSchema !== 'undefined' ? fileSchema : {};
 	var fs = null;
 
-	function errorHandler(e) {
+	function errorHandler(DOMError) {
 		var msg = '';
 
-		switch (e.code) {
-			case FileError.QUOTA_EXCEEDED_ERR:
-				msg = 'QUOTA_EXCEEDED_ERR';
+		switch (DOMError.name) {
+			case 'QuotaExceededError':
+				msg = 'QuotaExceededError';
 				break;
-			case FileError.NOT_FOUND_ERR:
-				msg = 'NOT_FOUND_ERR';
+			case 'NotFoundError':
+				msg = 'NotFoundError';
 				break;
-			case FileError.SECURITY_ERR:
-				msg = 'SECURITY_ERR';
+			case 'SecurityError':
+				msg = 'SecurityError';
 				break;
-			case FileError.INVALID_MODIFICATION_ERR:
-				msg = 'INVALID_MODIFICATION_ERR';
+			case 'InvalidModificationError':
+				msg = 'InvalidModificationError';
 				break;
-			case FileError.INVALID_STATE_ERR:
-				msg = 'INVALID_STATE_ERR';
+			case 'InvalidStateError':
+				msg = 'InvalidStateError';
 				break;
 			default:
 				msg = 'Unknown Error';
@@ -104,11 +104,14 @@ var ChromeStore = (function(fileSchema) {
 
 		renameDir: function(path,newName,callback) {
 			var rootDir = fs.root;
-			var pathArray = path.split('/'), pLength = pathArray.length, pathToParent;
+			var pathArray = path.split('/');
+			var pLength = pathArray.length;
+			var pathToParent="";
 
 			for(var i = 0; i<=pLength-2; i++){
-				pathToParent = pathArray[i]+"/";
+				pathToParent = pathToParent+pathArray[i]+"/";
 			}
+
 			rootDir.getDirectory(pathToParent,{},function(parentDir){
 				pathToParent = parentDir;
 			},errorHandler);
@@ -139,7 +142,28 @@ var ChromeStore = (function(fileSchema) {
 		  	}, errorHandler);
 		},
 
-		renameFile: function(path, newName, callback) {
+		renameFile: function(path,newName,callback) {
+			var rootDir = fs.root;
+			var pathArray = path.split('/');
+			var pLength = pathArray.length;
+			var pathToParent= "";
+
+			for(var i = 0; i<=pLength-2; i++){
+				pathToParent = pathToParent+pathArray[i]+"/";
+			}
+
+			rootDir.getDirectory(pathToParent,{},function(parentDir){
+				pathToParent = parentDir;
+			},errorHandler);
+
+			fs.root.getFile(path, {}, function(fileEntry){
+				fileEntry.moveTo(pathToParent, newName,function(){
+					console.log('File renamed');
+
+					//call callback function if specified
+					if(callback) callback();
+				}, errorHandler);
+			}, errorHandler);
 		},
 
 		isPersistentAvailable: function() {
