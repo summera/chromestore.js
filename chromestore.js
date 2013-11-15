@@ -69,7 +69,7 @@ var ChromeStore = (function(fileSchema) {
 
 		},
 
-		createDir: function(root,path,callback) {
+		createDir: function(path,callback,root) {
 			path = (typeof path === 'object' ? path : path.split('/'));
 			var rootDir = root ? root : fs.root, that = this;
 
@@ -81,7 +81,7 @@ var ChromeStore = (function(fileSchema) {
 			rootDir.getDirectory(path[0], {create: true}, function(dirEntry) {
 				// Recursively add the new subfolder (if we still have another to create).
 				if (path.length) {
-					that.createDir(dirEntry,path.slice(1),callback);
+					that.createDir(path.slice(1),callback,dirEntry);
 				}
 				else {
 					if(callback) callback();
@@ -216,7 +216,16 @@ var ChromeStore = (function(fileSchema) {
 		},
 
 		listFiles: function(path) {
+			var dirReader = fs.root.createReader();
+			dirReader.readEntries(function(entries) {
+				if (!entries.length) {
+					console.log('Filesystem is empty.');
+				}
 
+				for (var i = 0, entry; entry = entries[i]; ++i) {
+					console.log(entry.name);
+				}
+			}, errorHandler);
 		}
 
 	};
