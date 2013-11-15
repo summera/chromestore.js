@@ -30,6 +30,15 @@ function testDeleteDir(cs){
 	});
 }
 
+//Test deleting non empty directory
+function testDeleteNonEmptyDir(cs){
+	cs.createDir('genres/notEmpty', function(){
+		cs.write('genres/notEmpty/media.mp4','video/mp4','aaa',true, function(){
+			cs.deleteDir('genres/notEmpty');
+		});
+	});
+}
+
 //Test renaming directory
 function testRenameDir(cs){
 	cs.createDir('genres/rap', function(){
@@ -87,6 +96,7 @@ function tests(cs){
 	testwrite(cs);
 	testCreateDir(cs);
 	testDeleteDir(cs);
+	testDeleteNonEmptyDir(cs);
 	testRenameDir(cs);
 	testCreateFile(cs);
 	testDeleteFile(cs);
