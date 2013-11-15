@@ -1,7 +1,7 @@
 var cs;
 
 
-//test write dummy file and dir
+//Test writing to file
 function testwrite(cs){
 	//createDir(root, path, [callback])
 	cs.createDir('', 'genres/action', function(){
@@ -11,6 +11,7 @@ function testwrite(cs){
 	
 }
 
+//Test creating directory
 function testCreateDir(cs){
 	//create dir
 	cs.createDir('', 'genres/drama', function(){});
@@ -19,6 +20,7 @@ function testCreateDir(cs){
 	cs.createDir('', 'genres/rock', function(){});
 }
 
+//Test deleting directory
 function testDeleteDir(cs){
 	cs.createDir('', 'genres/deleteFolder', function(){
 		//deleteDir(path,[callback])
@@ -26,6 +28,7 @@ function testDeleteDir(cs){
 	});
 }
 
+//Test renaming directory
 function testRenameDir(cs){
 	cs.createDir('', 'genres/rap', function(){
 		//renameDir(oldPath,newDirName,[callback])
@@ -33,12 +36,14 @@ function testRenameDir(cs){
 	});
 }
 
+//Test creating file
 function testCreateFile(cs){
 	cs.createFile('fileCreate.txt', true, true, function(){
 		cs.write('fileCreate.txt', 'text/plain', 'test create file', false);
 	});
 }
 
+//Test deleting file
 function testDeleteFile(cs){
 	cs.createFile('fileDelete.txt', true, true, function(){
 		cs.write('fileDelete.txt', 'text/plain', 'test delete file', false, function(){
@@ -47,6 +52,7 @@ function testDeleteFile(cs){
 	});
 }
 
+//Test renaming file
 function testRenameFile(cs){
 	cs.createFile('fileNotRenamed.txt', true, true, function(){
 		cs.write('fileNotRenamed.txt', 'text/plain', 'test rename file', false, function(){
@@ -55,6 +61,7 @@ function testRenameFile(cs){
 	});
 }
 
+//Test getting data from url
 function testGetData(cs){
 	var url = 'https://s3.amazonaws.com/lr-chaos/videos/encoded_files/000/000/548/original/Hands-Elegant-Road-04-22-13.mp4';
 	console.log('Retrieving data from ' + url);
@@ -64,6 +71,7 @@ function testGetData(cs){
 	});
 }
 
+//Test getting and writing data from url to local file
 function testGetAndWrite(cs){
 	var url = 'https://s3.amazonaws.com/lr-chaos/videos/encoded_files/000/000/548/original/Hands-Elegant-Road-04-22-13.mp4';
 	console.log('Retrieving data from ' + url);
