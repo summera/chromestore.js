@@ -4,7 +4,7 @@ var cs;
 //test write dummy file and dir
 function testwrite(cs){
 	//createDir(root, path, [callback])
-	cs.createDir('', 'genres/action', function(){
+	cs.createDir('genres/action', function(){
 		//write(path, type, data, createFlag)
 		cs.write('genres/action/media.mp4','video/mp4','aaa',true);
 	});
@@ -13,21 +13,21 @@ function testwrite(cs){
 
 function testCreateDir(cs){
 	//create dir
-	cs.createDir('', 'genres/drama', function(){});
+	cs.createDir('genres/drama', function(){});
 
 	//create dir 
-	cs.createDir('', 'genres/rock', function(){});
+	cs.createDir('genres/rock', function(){});
 }
 
 function testDeleteDir(cs){
-	cs.createDir('', 'genres/deleteFolder', function(){
+	cs.createDir('genres/deleteFolder', function(){
 		//deleteDir(path,[callback])
 		cs.deleteDir('genres/deleteFolder');
 	});
 }
 
 function testRenameDir(cs){
-	cs.createDir('', 'genres/rap', function(){
+	cs.createDir('genres/rap', function(){
 		//renameDir(oldPath,newDirName,[callback])
 		cs.renameDir('genres/rap','renamedDir');
 	});
