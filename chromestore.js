@@ -41,7 +41,12 @@ var ChromeStore = (function(fileSchema) {
 					console.log("Granted Bytes: " + grantedBytes);
 					console.log("**********************************");
 
-					callback(that); //Execute callback
+					if(callback){
+						callback(that); //Execute callback
+					}
+					else{
+						console.log('no callback');
+					}
 
 				}, errorHandler);
 			}
@@ -85,7 +90,7 @@ var ChromeStore = (function(fileSchema) {
 		},
 
 		deleteDir: function(path,callback){
-			var rootDir = fs.root, that = this;
+			var rootDir = fs.root;
 
 			rootDir.getDirectory(path,{},function(dirEntry){
 				dirEntry.remove(function(){
@@ -98,7 +103,7 @@ var ChromeStore = (function(fileSchema) {
 		},
 
 		renameDir: function(path,newName,callback) {
-			var rootDir = fs.root, that = this;
+			var rootDir = fs.root;
 			var pathArray = path.split('/'), pLength = pathArray.length, pathToParent;
 
 			for(var i = 0; i<=pLength-2; i++){
@@ -109,18 +114,18 @@ var ChromeStore = (function(fileSchema) {
 			},errorHandler);
 
 			rootDir.getDirectory(path,{},function(dirEntry){
-				dirEntry.moveTo(pathToParent,newName,function() {
+				dirEntry.moveTo(pathToParent,newName,function(newDir) {
 					console.log(path + ' Directory renamed.');
 					
 					//call callback function if specified
-					if(callback) callback();
+					if(callback) callback(newDir);
 				}, errorHandler);
 			}, errorHandler);
 		},
 
 		createFile: function(path, create, exclusive, callback) {
-			fs.root.getFile(path, {create: true, exclusive: true}, function(fileEntry) {
-				callback(fileEntry);
+			fs.root.getFile(path, {create: create, exclusive: exclusive}, function(fileEntry) {
+				if(callback) {callback(fileEntry);}
 			}, errorHandler);
 		},
 
@@ -134,8 +139,7 @@ var ChromeStore = (function(fileSchema) {
 		  	}, errorHandler);
 		},
 
-		renameFile: function(path) {
-
+		renameFile: function(path, newName, callback) {
 		},
 
 		isPersistentAvailable: function() {
@@ -147,9 +151,9 @@ var ChromeStore = (function(fileSchema) {
 			return fw;
 		},
 
-		write: function(fileName,fileType,data,createFlag) {
+		write: function(fileName, fileType, data, createFlag, callback) {
 			var fw = this.createWriter();
-			fw.writeData(fileName,fileType,data,createFlag);
+			fw.writeData(fileName, fileType, data, createFlag, callback);
 		},
 
 		createReceiver: function() {
@@ -210,7 +214,7 @@ var FileWriter = (function(filesystem) {
 	}
 
 	return {
-		writeData: function(fileName,fileType,data,createFlag){
+		writeData: function(fileName, fileType, data, createFlag, callback){
 			fs.root.getFile(fileName, {create: createFlag}, function(fileEntry) {
 
 				// Create a FileWriter object for our FileEntry (log.txt).
@@ -218,6 +222,7 @@ var FileWriter = (function(filesystem) {
 
 					fileWriter.onwriteend = function(e) {
 						console.log('Write completed.');
+						if(callback) {callback(fileEntry);}
 					};
 
 					fileWriter.onerror = function(e) {
