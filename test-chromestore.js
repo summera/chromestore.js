@@ -12,22 +12,30 @@ function testwrite(cs){
 }
 
 function testCreateDir(cs){
-	//create another dir and delete it
-	cs.createDir('', 'genres/drama', function(){
-		//deleteDir(path,[callback])
-		cs.deleteDir('genres/drama');
-	});
+	//create dir
+	cs.createDir('', 'genres/drama', function(){});
 
-	//create dir and rename it
-	cs.createDir('', 'genres/rock', function(){
+	//create dir 
+	cs.createDir('', 'genres/rock', function(){});
+}
+
+function testDeleteDir(cs){
+	cs.createDir('', 'genres/deleteFolder', function(){
+		//deleteDir(path,[callback])
+		cs.deleteDir('genres/deleteFolder');
+	});
+}
+
+function testRenameDir(cs){
+	cs.createDir('', 'genres/rap', function(){
 		//renameDir(oldPath,newDirName,[callback])
-		cs.renameDir('genres/rock','roll');
+		cs.renameDir('genres/rap','renamedDir');
 	});
 }
 
 function testCreateFile(cs){
-	cs.createFile('file1.txt', true, true, function(){
-		cs.write('file1.txt', 'text/plain', 'test create file', false);
+	cs.createFile('fileCreate.txt', true, true, function(){
+		cs.write('fileCreate.txt', 'text/plain', 'test create file', false);
 	});
 }
 
@@ -39,11 +47,22 @@ function testDeleteFile(cs){
 	});
 }
 
-function tests (cs){
+function testRenameFile(cs){
+	cs.createFile('fileNotRenamed.txt', true, true, function(){
+		cs.write('fileNotRenamed.txt', 'text/plain', 'test rename file', false, function(){
+			cs.renameFile('fileNotRenamed.txt', 'fileRenamed.txt');
+		});
+	});
+}
+
+function tests(cs){
 	testwrite(cs);
 	testCreateDir(cs);
+	testDeleteDir(cs);
+	testRenameDir(cs);
 	testCreateFile(cs);
 	testDeleteFile(cs);
+	testRenameFile(cs);
 }
 
 
