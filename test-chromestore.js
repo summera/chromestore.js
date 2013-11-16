@@ -101,7 +101,7 @@ function tests(cs){
 	testCreateFile(cs);
 	testDeleteFile(cs);
 	testRenameFile(cs);
-	cs.isPersistentAvailable();
+	cs.usedAndRemaining();
 	//testGetData(cs);
 	//testGetAndWrite(cs);
 }
