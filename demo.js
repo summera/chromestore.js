@@ -2,14 +2,25 @@ $(function(){
 	//FUNCTIONS
 	function changeSourceToLocal(fileEntry) {
 		var video = $("#vid").get(0);
+		var isPlaying = !video.paused;
 		var currentTime = video.currentTime;
+		console.log(currentTime);
+
+
+		$("video").on('loadedmetadata', function(){
+			console.log(currentTime);
+			video.currentTime = currentTime;
+
+			if(isPlaying){
+				video.play();
+			}
+		});
 
 		$("video").attr("src", fileEntry.toURL());
-		video.currentTime = currentTime;
 	}
 
 	var cs = new ChromeStore();
-	cs.init(1024*1024*1024, tests);
+	cs.init(1024*1024*1024);
 
 
 	//EVENT HANDLERS
@@ -18,14 +29,14 @@ $(function(){
 		$("#vid").attr("src",vidSource);
 		var video = $("#vid").get(0);
 		video.load();
-		video.play();
+		//video.play();
 	});
 
 	$("#downloadToLocal").click(function(){
 		var url = $("#vid").attr('src');
 		cs.getAndWrite(url, 'video.mp4', 'video/mp4', true, function(fileEntry){
-		
-			console.log('Switching to local file system');
+			changeSourceToLocal(fileEntry);
+			console.log('Video source changed to local storage.');
 		});
 
 	});	
