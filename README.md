@@ -1,14 +1,19 @@
 chromestore.js
 ===========
 
-chromestore.js is a simple javascript filesystem API for the Chrome browser.
+<p>
+Chromestore.js is a simple javascript filesystem API for the Chrome browser. <br /> 
 It provides support for persistent file storage in the browser.  
+</p>
+
 The API provides an easy to use interface for:
 
-Creating files and directories
-Deleting files and directories
-Renaming files and directories
-Writing to files
-Executing ajax calls to obtain data
-Writing large amounts of data obtained from ajax call to file
-Getting used and remaining bytes of filesystem
+<ul>
+	<li> Creating files and directories </li>
+	<li> Deleting files and directories </li>
+	<li> Renaming files and directories </li>
+	<li> Writing to files </li>
+	<li> Executing ajax calls to obtain data </li>
+	<li> Writing large amounts of data obtained from ajax call to file </li>
+	<li> Getting used and remaining bytes of filesystem </li>
+</ul>
