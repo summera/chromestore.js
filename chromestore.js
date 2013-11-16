@@ -236,7 +236,7 @@ var ChromeStore = (function(fileSchema) {
 		},
 
 		/*
-
+			Create new FileWriter object and returns it to the caller
 		*/
 		createWriter: function() {
 			var fw = new FileWriter(fs);
@@ -244,6 +244,14 @@ var ChromeStore = (function(fileSchema) {
 		},
 
 		/*
+			Write to a file
+			If file does not exist, createFlag must be set to True
+
+			path 		[string]: path of file in which to write / create
+			fileType	[string]: type of file (eg. video/mp4, application/text)
+			data 		[string]: blob to be written to the file
+			createFlag	[boolean]: create new file
+			callback 	[function]: function to be executed when data has been written
 
 		*/
 		write: function(path, fileType, data, createFlag, callback) {
@@ -252,7 +260,7 @@ var ChromeStore = (function(fileSchema) {
 		},
 		
 		/*
-
+			Create new DataReceiver object and returns it to the caller
 		*/
 		createReceiver: function() {
 			var receiver = new DataReceiver();
@@ -260,17 +268,26 @@ var ChromeStore = (function(fileSchema) {
 		},
 
 		/*
+			Get data from a specified url
+			Returns a function with 'data' parameter
 
+			url			[string]: URL path of the file to be downloaded
+			callback	[function]: function to be executed when file has finished downloading
 		*/
 		getData: function(url, callback) {
-
 			var receiver = this.createReceiver();
-
 			receiver.getData(url, callback);
 		},
 
 		/*
+			Get data from a URL and store it in local persistent storage
+			Calls getData and write in sequence
 
+			url			[string]: URL path of the file to be downloaded
+			path 		[string]: path of file in which to write / create
+			fileType	[string]: type of file (eg. video/mp4, application/text)
+			createFlag	[boolean]: create new file
+			callback 	[function]: function to be executed when file has been written
 		*/
 		getAndWrite: function(url, path, fileType, createFlag, callback) {
 			var that = this;
@@ -280,7 +297,7 @@ var ChromeStore = (function(fileSchema) {
 		},
 
 		/*
-
+			Delete all files and directories that already exists in local persistent storage
 		*/
 		purge: function() {
 			var dirReader = fs.root.createReader();
@@ -297,7 +314,8 @@ var ChromeStore = (function(fileSchema) {
 		},
 
 		/*
-
+			List all files that exists in local persistent storage
+			Outputs in console
 		*/
 		listFiles: function(path) {
 			var dirReader = fs.root.createReader();
@@ -317,7 +335,8 @@ var ChromeStore = (function(fileSchema) {
 });
 
 /*
-
+	FileWriter Object
+	method: writeData
 */
 var FileWriter = (function(filesystem) {
 	var fs = filesystem;
@@ -349,7 +368,15 @@ var FileWriter = (function(filesystem) {
 
 	return {
 		/*
+			Write data to a file
+			If file does not exist, createFlag must be set to True
+			If file already exists and createFlag is set to True, its content will be overwritten
 
+			path 		[string]: path of file in which to write / create
+			fileType	[string]: type of file (eg. video/mp4, application/text)
+			data 		[string]: blob to be written to the file
+			createFlag	[boolean]: create new file
+			callback 	[function]: function to be executed when data has been written
 		*/
 		writeData: function(path, fileType, data, createFlag, callback){
 			fs.root.getFile(path, {create: createFlag}, function(fileEntry) {
@@ -379,14 +406,19 @@ var FileWriter = (function(filesystem) {
 });
 
 /*
-
+	DataReceiver object
+	Method: getData
 */
 var DataReceiver = (function() {
 
 	return {
 
 		/*
+			Get data from a specified url
+			Returns a function with 'data' parameter
 
+			url			[string]: URL path of the file to be downloaded
+			callback	[function]: function to be executed when file has finished downloading
 		*/
 		getData: function(url, callback){
 			var xhr = new XMLHttpRequest(); 
