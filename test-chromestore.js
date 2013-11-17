@@ -8,7 +8,6 @@ function testwrite(cs){
 		//write(path, type, data, createFlag)
 		cs.write('genres/action/media.mp4','video/mp4','aaa',true);
 	});
-	
 }
 
 //Test creating directory
@@ -92,6 +91,7 @@ function testGetAndWrite(cs){
 	});
 }
 
+//Run tests
 function tests(cs){
 	testwrite(cs);
 	testCreateDir(cs);
@@ -108,17 +108,19 @@ function tests(cs){
 
 
 window.onload = function(){
-	//initializeChromestore(tests);
+
 	var cs = new ChromeStore();
 	cs.init(1024*1024*1024, tests);
 	$("#purgeButton").on("click",function(){
 		cs.purge();
 	});
 
+	//Run get data test
 	$("#getDataButton").on("click",function(){
 		testGetData(cs);
 	});
 
+	//Run get data and write test
 	$("#getAndWriteDataButton").on("click",function(){
 		testGetAndWrite(cs);
 	});
