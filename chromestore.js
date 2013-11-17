@@ -55,12 +55,7 @@ var ChromeStore = (function(fileSchema) {
 					console.log("Granted Bytes: " + grantedBytes);
 					console.log("**********************************");
 
-					if(callback){
-						callback(that); //Execute callback
-					}
-					else{
-						console.log('no callback');
-					}
+					if(callback){callback(that);} //Execute callback
 
 				}, errorHandler);
 			}
@@ -84,31 +79,36 @@ var ChromeStore = (function(fileSchema) {
 		},
 
 		/*
-			Create directory or directories on filesystem.
+			Create/get directory or directories on filesystem.
 			Recursively creates directories on passed in path.
 			If directory already exists, one is not made.
 
 			path 		[string]: path of directories in which to create
 			callback 	[function]: function to be executed when directory has been created
 		*/
-		createDir: function(path,callback,root) {
-			path = (typeof path === 'object' ? path : path.split('/'));
-			var rootDir = root ? root : fs.root, that = this;
+		getDir: function(path, flags, callback) {
 
-			// Throw out './' or '/' and move on to prevent something like '/foo/.//bar'.
-			if (path[0] == '.' || path[0] == '') {
-				path = path.slice(1);
+			function recursiveCreate(path, callback, root){
+				path = (typeof path === 'object' ? path : path.split('/'));
+				var rootDir = root ? root : fs.root;
+
+				// Throw out './' or '/' and move on to prevent something like '/foo/.//bar'.
+				if (path[0] == '.' || path[0] == '') {
+					path = path.slice(1);
+				}
+
+				rootDir.getDirectory(path[0], flags, function(dirEntry) {
+					// Recursively add the new subfolder (if we still have another to create).
+					if (path.length - 1) {
+						recursiveCreate(path.slice(1), callback, dirEntry);
+					}
+					else {
+						if(callback) callback(dirEntry);
+					}
+				}, errorHandler);
 			}
 
-			rootDir.getDirectory(path[0], {create: true}, function(dirEntry) {
-				// Recursively add the new subfolder (if we still have another to create).
-				if (path.length) {
-					that.createDir(path.slice(1),callback,dirEntry);
-				}
-				else {
-					if(callback) callback();
-				}
-			}, errorHandler);
+			recursiveCreate(path, callback);
 		},
 
 		/*
@@ -161,7 +161,7 @@ var ChromeStore = (function(fileSchema) {
 		},
 
 		/*	
-			Create file 
+			Create/get file 
 			Directory in which file is created must exist before
 			creating file
 
@@ -170,8 +170,8 @@ var ChromeStore = (function(fileSchema) {
 			exclusive 	[boolean]: true will throw an error if file already exists, false will overwrite contents
 			callback 	[function]: function to be executed when file is created. passed the FileEntry object
 		*/
-		createFile: function(path, create, exclusive, callback) {
-			fs.root.getFile(path, {create: create, exclusive: exclusive}, function(fileEntry) {
+		getFile: function(path, flags, callback) {
+			fs.root.getFile(path, flags, function(fileEntry) {
 				if(callback) {callback(fileEntry);}
 			}, errorHandler);
 		},
@@ -254,9 +254,9 @@ var ChromeStore = (function(fileSchema) {
 			callback 	[function]: function to be executed when data has been written
 
 		*/
-		write: function(path, fileType, data, createFlag, callback) {
+		write: function(path, fileType, data, flags, callback) {
 			var fw = this.createWriter();
-			fw.writeData(path, fileType, data, createFlag, callback);
+			fw.writeData(path, fileType, data, flags, callback);
 		},
 		
 		/*
@@ -289,10 +289,10 @@ var ChromeStore = (function(fileSchema) {
 			createFlag	[boolean]: create new file
 			callback 	[function]: function to be executed when file has been written
 		*/
-		getAndWrite: function(url, path, fileType, createFlag, callback) {
+		getAndWrite: function(url, path, fileType, flags, callback) {
 			var that = this;
 			this.getData(url, function(data){
-				that.write(path, fileType, data, createFlag, callback)
+				that.write(path, fileType, data, flags, callback)
 			});
 		},
 
@@ -378,8 +378,8 @@ var FileWriter = (function(filesystem) {
 			createFlag	[boolean]: create new file
 			callback 	[function]: function to be executed when data has been written
 		*/
-		writeData: function(path, fileType, data, createFlag, callback){
-			fs.root.getFile(path, {create: createFlag}, function(fileEntry) {
+		writeData: function(path, fileType, data, flags, callback){
+			fs.root.getFile(path, flags, function(fileEntry) {
 
 				// Create a FileWriter object for our FileEntry (log.txt).
 				fileEntry.createWriter(function(fileWriter) {

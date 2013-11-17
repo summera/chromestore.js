@@ -3,27 +3,30 @@ var cs;
 
 //Test writing to file
 function testwrite(cs){
-	//createDir(root, path, [callback])
-	cs.createDir('genres/action', function(){
+	//getDir(root, path, [callback])
+	cs.getDir('genres/action', {create: true}, function(){
 		//write(path, type, data, createFlag)
-		cs.write('genres/action/media.mp4','video/mp4','aaa',true);
+		cs.write('genres/action/media.mp4','video/mp4','aaa', {create: true});
 	});
 }
 
 //Test creating directory
 function testCreateDir(cs){
 	//create dir
-	cs.createDir('genres/drama', function(){
-		cs.createDir('genres/drama/extremedrama');
+	cs.getDir('genres/drama', {create: true}, function(){
+		cs.getDir('genres/drama/extremedrama', {create: true}, function(){
+			cs.write('genres/drama/extremedrama/extreme.txt', 'text/plain', 'this is extreme!!', {create: true});
+			cs.getDir('genres/drama/blah', {create: true});
+		});
 	});
 
 	//create dir 
-	cs.createDir('genres/rock', function(){});
+	cs.getDir('genres/rock', {create: true}, function(){});
 }
 
 //Test deleting directory
 function testDeleteDir(cs){
-	cs.createDir('genres/deleteFolder', function(){
+	cs.getDir('genres/deleteFolder', {create: true}, function(){
 		//deleteDir(path,[callback])
 		cs.deleteDir('genres/deleteFolder');
 	});
@@ -31,8 +34,8 @@ function testDeleteDir(cs){
 
 //Test deleting non empty directory
 function testDeleteNonEmptyDir(cs){
-	cs.createDir('genres/notEmpty', function(){
-		cs.write('genres/notEmpty/media.mp4','video/mp4','aaa',true, function(){
+	cs.getDir('genres/notEmpty', {create: true}, function(){
+		cs.write('genres/notEmpty/media.mp4','video/mp4','aaa', {create: true}, function(){
 			cs.deleteDir('genres/notEmpty');
 		});
 	});
@@ -40,7 +43,7 @@ function testDeleteNonEmptyDir(cs){
 
 //Test renaming directory
 function testRenameDir(cs){
-	cs.createDir('genres/rap', function(){
+	cs.getDir('genres/rap', {create: true}, function(){
 		//renameDir(oldPath,newDirName,[callback])
 		cs.renameDir('genres/rap','renamedDir');
 	});
@@ -48,15 +51,15 @@ function testRenameDir(cs){
 
 //Test creating file
 function testCreateFile(cs){
-	cs.createFile('fileCreate.txt', true, true, function(){
-		cs.write('fileCreate.txt', 'text/plain', 'test create file', false);
+	cs.getFile('fileCreate.txt', {create: true, exclusive: true}, function(){
+		cs.write('fileCreate.txt', 'text/plain', 'test create file', {create: false});
 	});
 }
 
 //Test deleting file
 function testDeleteFile(cs){
-	cs.createFile('fileDelete.txt', true, true, function(){
-		cs.write('fileDelete.txt', 'text/plain', 'test delete file', false, function(){
+	cs.getFile('fileDelete.txt', {create: true, exclusive: true}, function(){
+		cs.write('fileDelete.txt', 'text/plain', 'test delete file', {create: false}, function(){
 			cs.deleteFile('fileDelete.txt');
 		});
 	});
@@ -64,8 +67,8 @@ function testDeleteFile(cs){
 
 //Test renaming file
 function testRenameFile(cs){
-	cs.createFile('fileNotRenamed.txt', true, true, function(){
-		cs.write('fileNotRenamed.txt', 'text/plain', 'test rename file', false, function(){
+	cs.getFile('fileNotRenamed.txt', {create: true, exclusive: true}, function(){
+		cs.write('fileNotRenamed.txt', 'text/plain', 'test rename file', {create: false}, function(){
 			cs.renameFile('fileNotRenamed.txt', 'fileRenamed.txt');
 		});
 	});
@@ -85,7 +88,7 @@ function testGetData(cs){
 function testGetAndWrite(cs){
 	var url = 'https://s3.amazonaws.com/lr-chaos/videos/encoded_files/000/000/548/original/Hands-Elegant-Road-04-22-13.mp4';
 	console.log('Retrieving data from ' + url);
-	cs.getAndWrite(url, 'video.mp4', 'video/mp4', true, function(){
+	cs.getAndWrite(url, 'video.mp4', 'video/mp4', {create: true}, function(){
 		
 		console.log('Write video complete');
 	});
