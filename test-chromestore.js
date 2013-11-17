@@ -92,6 +92,13 @@ function testGetAndWrite(cs){
 	});
 }
 
+function testUsedRemaining(cs){
+	cs.usedAndRemaining(function (used,remaining) {
+		console.log("Used bytes: "+used);
+		console.log("Remaining bytes: "+remaining);
+	});
+}
+
 function tests(cs){
 	testwrite(cs);
 	testCreateDir(cs);
@@ -101,7 +108,7 @@ function tests(cs){
 	testCreateFile(cs);
 	testDeleteFile(cs);
 	testRenameFile(cs);
-	cs.usedAndRemaining();
+	testUsedRemaining(cs);
 	//testGetData(cs);
 	//testGetAndWrite(cs);
 }
