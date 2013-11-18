@@ -117,15 +117,28 @@ var ChromeStore = (function(fileSchema) {
 			path 		[string]: path to directory in which to delete
 			callback 	[function]: function to be executed when directory has been deleted
 		*/
-		deleteDir: function(path,callback){
+		deleteDir: function(path, flags, callback){
+
+			var flags = flags || {};
+			if(flags.recursive === undefined) flags.recursive = false;
+
 			var rootDir = fs.root;
 
 			rootDir.getDirectory(path,{},function(dirEntry){
-				dirEntry.removeRecursively(function(){
-					
-					//call callback function if specified
-					if(callback) callback();
-				}, errorHandler);
+				if(flags.recursive){
+					dirEntry.removeRecursively(function(){
+						
+						//call callback function if specified
+						if(callback) callback();
+					}, errorHandler);
+				}
+				else{
+					dirEntry.remove(function(){
+						
+						//call callback function if specified
+						if(callback) callback();
+					}, errorHandler);
+				}
 			}, errorHandler);
 		},
 
@@ -136,7 +149,7 @@ var ChromeStore = (function(fileSchema) {
 			newName 	[string]: new name of directory
 			callback 	[function]: function to be executed when directory is renamed
 		*/
-		renameDir: function(path,newName,callback) {
+		renameDir: function(path, newName, callback) {
 			var rootDir = fs.root;
 			var pathArray = path.split('/');
 			var pLength = pathArray.length;

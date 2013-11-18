@@ -28,7 +28,7 @@ function testCreateDir(cs){
 function testDeleteDir(cs){
 	cs.getDir('genres/deleteFolder', {create: true}, function(){
 		//deleteDir(path,[callback])
-		cs.deleteDir('genres/deleteFolder');
+		cs.deleteDir('genres/deleteFolder', {recursive: false});
 	});
 }
 
@@ -36,7 +36,7 @@ function testDeleteDir(cs){
 function testDeleteNonEmptyDir(cs){
 	cs.getDir('genres/notEmpty', {create: true}, function(){
 		cs.write('genres/notEmpty/media.mp4','video/mp4','aaa', {create: true}, function(){
-			cs.deleteDir('genres/notEmpty');
+			cs.deleteDir('genres/notEmpty', {recursive: true});
 		});
 	});
 }
@@ -104,7 +104,7 @@ function testUsedRemaining(cs){
 
 //Run tests
 function tests(cs){
-	testwrite(cs);
+	//testwrite(cs);
 	testCreateDir(cs);
 	testDeleteDir(cs);
 	testDeleteNonEmptyDir(cs);
