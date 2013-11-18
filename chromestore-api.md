@@ -21,7 +21,7 @@ init(requestedBytes, callback);
 
 ```javascript
 cs.init(1024*1024, function(cstore){
-	console.log('Chromestore initialized');
+    console.log('Chromestore initialized');
 });
 ```
 
@@ -35,8 +35,8 @@ usedAndRemaining(callback);
 
 ```javascript
 cs.usedAndRemaining(function (used,remaining) {
-	console.log("Used bytes: "+ used);
-	console.log("Remaining bytes: "+ remaining);
+    console.log("Used bytes: "+ used);
+    console.log("Remaining bytes: "+ remaining);
 });
 
 ```
@@ -44,13 +44,13 @@ cs.usedAndRemaining(function (used,remaining) {
 ## Working with Directories
 
 ### Flags
-**Create** - 	If create is true, a file or directory will be created if it does not already exist.
-				If create is false, a file or directory will not be created and if it does not already exist
-				an error will be thrown.
+**Create** -    If create is true, a file or directory will be created if it does not already exist.
+                If create is false, a file or directory will not be created and if it does not already exist
+                an error will be thrown.
 
 **Exclusive** - Exclusive only has an effect when used with {create: true}.  When exclusive is true,
-				an error will be thrown if the file already exists. 
-	
+                an error will be thrown if the file already exists. 
+    
 
 ### Creating and Getting Directories
 getDir() will create a directory when the create flag is set to true.
@@ -68,7 +68,7 @@ getDir(path, flags, callback);
 ```javascript
 //Create directory hierarchy root/genres/action
 cs.getDir('genres/action', {create: true}, function(dirEntry){
-	console.log('Directory created');		
+    console.log('Directory created');       
 });
 ```
 
@@ -93,7 +93,7 @@ deleteDir(path, flags, callback);
 
 ```javascript
 cs.deleteDir('genres/directoryToDelete', {recursive: false}, function(){
-	console.log('Directory deleted');
+    console.log('Directory deleted');
 });
 ```
 
@@ -113,7 +113,7 @@ getFile(path, flags, callback);
 
 ```javascript
 cs.getFile('fileCreate.txt', {create: true, exclusive: true}, function(fileEntry){
-	console.log('File created');
+    console.log('File created');
 });
 ```
 
@@ -126,8 +126,8 @@ write(path, mimetype, data, flags);
 ```javascript
 //Create Directory
 cs.getDir('genres/action', {create: true}, function(){
-	//Create and write to file
-	cs.write('genres/action/media.mp4','video/mp4','aaa', {create: true});
+    //Create and write to file
+    cs.write('genres/action/media.mp4','video/mp4','aaa', {create: true});
 });
 ```
 
@@ -137,9 +137,9 @@ renameFile(pathToFile, newName);
 
 ```javascript
 cs.getFile('fileNotRenamed.txt', {create: true, exclusive: true}, function(){
-	cs.write('fileNotRenamed.txt', 'text/plain', 'test rename file', {create: false}, function(){
-		cs.renameFile('fileNotRenamed.txt', 'fileRenamed.txt');
-	});
+    cs.write('fileNotRenamed.txt', 'text/plain', 'test rename file', {create: false}, function(){
+        cs.renameFile('fileNotRenamed.txt', 'fileRenamed.txt');
+    });
 });
 ```
 
@@ -150,11 +150,11 @@ deleteFile(pathToFile);
 ```javascript
 //Create and retrieve 'fileDelete.txt'
 cs.getFile('fileDelete.txt', {create: true, exclusive: true}, function(){
-	//Write to 'fileDelete.txt'
-	cs.write('fileDelete.txt', 'text/plain', 'test delete file', {create: false}, function(){
-		//Delete file
-		cs.deleteFile('fileDelete.txt');
-	});
+    //Write to 'fileDelete.txt'
+    cs.write('fileDelete.txt', 'text/plain', 'test delete file', {create: false}, function(){
+        //Delete file
+        cs.deleteFile('fileDelete.txt');
+    });
 });
 ```
 
@@ -169,7 +169,7 @@ Large amounts of data can be fetched, used, and integrated into the local filesy
 var url = 'https://s3.amazonaws.com/lr-chaos/videos/encoded_files/000/000/548/original/Hands-Elegant-Road-04-22-13.mp4';
 console.log('Retrieving data from ' + url);
 cs.getData(url, function(data){
-	console.log('Bytes Received from ' + url + ': ' + data.byteLength);
+    console.log('Bytes Received from ' + url + ': ' + data.byteLength);
 });
 ```
 
@@ -182,7 +182,7 @@ in persisten storage.
 var url = 'https://s3.amazonaws.com/lr-chaos/videos/encoded_files/000/000/548/original/Hands-Elegant-Road-04-22-13.mp4';
 console.log('Retrieving data from ' + url);
 cs.getAndWrite(url, 'video.mp4', 'video/mp4', {create: true}, function(){
-	console.log('Write video complete');
+    console.log('Write video complete');
 });
 ```
 
