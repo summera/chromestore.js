@@ -104,7 +104,7 @@ function testUsedRemaining(cs){
 
 //Run tests
 function tests(cs){
-	//testwrite(cs);
+	testwrite(cs);
 	testCreateDir(cs);
 	testDeleteDir(cs);
 	testDeleteNonEmptyDir(cs);
