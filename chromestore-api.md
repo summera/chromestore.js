@@ -13,7 +13,7 @@ var cs = new Chromestore();
 ```
 
 ### Initialization
-Ask for specified number of bytes from filesystem.
+Initialization is used to ask for specified number of bytes from filesystem.
 When initalized, callback will be executed. Callback
 is passed a reference to the created chromestore.
 
@@ -21,7 +21,7 @@ init(requestedBytes, callback);
 
 ```javascript
 cs.init(1024*1024, function(cstore){
-  console.log('Chromestore initialized');
+	console.log('Chromestore initialized');
 });
 ```
 
@@ -33,8 +33,8 @@ remaining will be 0.
 
 ```javascript
 cs.usedAndRemaining(function (used,remaining) {
-  console.log("Used bytes: "+ used);
-  console.log("Remaining bytes: "+ remaining);
+	console.log("Used bytes: "+ used);
+	console.log("Remaining bytes: "+ remaining);
 });
 
 ```
@@ -42,14 +42,55 @@ cs.usedAndRemaining(function (used,remaining) {
 ## Working with Directories
 
 ### Flags
+**Create** - 	If create is true, a file or directory will be created if it does not already exist.
+				If create is false, a file or directory will not be created and if it does not already exist
+				an error will be thrown.
 
-### Creating Directory
+**Exclusive** - Exclusive only has an effect when used with {create: true}.  When exclusive is true,
+				an error will be thrown if the file already exists. 
+	
 
-### Getting Directory
+### Creating and Getting Directories
+getDir() will create a directory when the create flag is set to true.
+Directories will be created recursively if they do not already exist.
+This makes it much easier to create directory hierarchies as compared to the 
+current filesystem API, where one would have to make sure the parent directory exists
+before creating the subdirectory.
+A reference to the dirEntry at the end of the path will be passed to the callback.
+
+If create is false, the directory at the end of the path will be fetched if it exists.
+
+getDir(path, flags, callback);
+
+```javascript
+cs.getDir('genres/action', {create: true}, function(dirEntry){
+	console.log('Directory created');		
+});
+```
 
 ### Renaming Directory
+renameDir() is used to rename directories.
+
+renameDir(pathToDirectory, newName);
+
+```javascript
+cs.renameDir('genres/rap','renamedDir');
+```
 
 ### Deleting Directory
+deleteDir() will remove a directory.
+If you would like to remove a directory and all its contents,
+set the recursive flag to true.  If recursive is set to false
+and the directory contains contents, an error will be thrown.
+Recursive is set to false by default.
+
+deleteDir(path, flags, callback);
+
+```javascript
+cs.deleteDir('genres/directoryToDelete', {recursive: false}, function(){
+	console.log('Directory deleted');
+});
+```
 
 ## Working with Files
 

@@ -17,3 +17,5 @@ The API provides an easy to use interface for:
 	<li> Writing large amounts of data obtained from ajax call to file </li>
 	<li> Getting used and remaining bytes of filesystem </li>
 </ul>
+
+Documentation: https://github.com/summera/chromestore.js/blob/master/chromestore-api.md
