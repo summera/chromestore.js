@@ -31,6 +31,8 @@ in chromestore, call usedAndRemaining();  This will also
 tell you whether persistent storage.  If not available,
 remaining will be 0.
 
+usedAndRemaining(callback);
+
 ```javascript
 cs.usedAndRemaining(function (used,remaining) {
 	console.log("Used bytes: "+ used);
@@ -59,10 +61,12 @@ before creating the subdirectory.
 A reference to the dirEntry at the end of the path will be passed to the callback.
 
 If create is false, the directory at the end of the path will be fetched if it exists.
+Therefore, getDir() is used for both creating and getting directories.
 
 getDir(path, flags, callback);
 
 ```javascript
+//Create directory hierarchy root/genres/action
 cs.getDir('genres/action', {create: true}, function(dirEntry){
 	console.log('Directory created');		
 });
@@ -74,6 +78,7 @@ renameDir() is used to rename directories.
 renameDir(pathToDirectory, newName);
 
 ```javascript
+//Rename 'rap' directory to 'renamedDir' 
 cs.renameDir('genres/rap','renamedDir');
 ```
 
@@ -93,20 +98,72 @@ cs.deleteDir('genres/directoryToDelete', {recursive: false}, function(){
 ```
 
 ## Working with Files
+Methods for files are very similar to those used for directories, 
+except you can write to files.
 
 ### Flags
+Flags are same as described above in directory section.
 
-### Creating Directory
+### Creating and Getting Files
+getFile() is used for both creating and getting files.
+In order to create a file within a directory, 
+the directory must exist before trying to create a file within it.
 
-### Getting Directory
+getFile(path, flags, callback);
 
-### Renaming Directory
+```javascript
+cs.getFile('fileCreate.txt', {create: true, exclusive: true}, function(fileEntry){
+	console.log('File created');
+});
+```
 
-### Deleting Directory
+### Writing to Files
+A file does not need to exist before writing to one.  If the file does not exist,
+and the create flag is set to true, the file will be created and then written to.
+
+write(path, mimetype, data, flags);
+
+```javascript
+//Create Directory
+cs.getDir('genres/action', {create: true}, function(){
+	//Create and write to file
+	cs.write('genres/action/media.mp4','video/mp4','aaa', {create: true});
+});
+```
+
+### Renaming Files
+
+renameFile(pathToFile, newName);
+
+```javascript
+cs.getFile('fileNotRenamed.txt', {create: true, exclusive: true}, function(){
+	cs.write('fileNotRenamed.txt', 'text/plain', 'test rename file', {create: false}, function(){
+		cs.renameFile('fileNotRenamed.txt', 'fileRenamed.txt');
+	});
+});
+```
+
+### Deleting Files
+
+deleteFile(pathToFile);
+
+```javascript
+//Create and retrieve 'fileDelete.txt'
+cs.getFile('fileDelete.txt', {create: true, exclusive: true}, function(){
+	//Write to 'fileDelete.txt'
+	cs.write('fileDelete.txt', 'text/plain', 'test delete file', {create: false}, function(){
+		//Delete file
+		cs.deleteFile('fileDelete.txt');
+	});
+});
+```
 
 ## Getting and Receiving Data
 
 ### Getting Data from URL
+Chromestore makes it easy to retrieve data from a remote server.
+Currently, this data is returned in an ArrayBuffer.
+Large amounts of data can be fetched, used, and integrated into the local filesystem
 
 ```javascript
 var url = 'https://s3.amazonaws.com/lr-chaos/videos/encoded_files/000/000/548/original/Hands-Elegant-Road-04-22-13.mp4';
@@ -117,6 +174,10 @@ cs.getData(url, function(data){
 ```
 
 ### Getting and Writing Data from URL
+Chromestore also makes it easy to retrieve and write data to a file all in one step.
+This should be used if there is no need to touch the data before storing it
+in persisten storage.
+
 ```javascript
 var url = 'https://s3.amazonaws.com/lr-chaos/videos/encoded_files/000/000/548/original/Hands-Elegant-Road-04-22-13.mp4';
 console.log('Retrieving data from ' + url);
