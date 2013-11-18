@@ -169,7 +169,7 @@ Large amounts of data can be fetched, used, and integrated into the local filesy
 var url = 'https://s3.amazonaws.com/lr-chaos/videos/encoded_files/000/000/548/original/Hands-Elegant-Road-04-22-13.mp4';
 console.log('Retrieving data from ' + url);
 cs.getData(url, function(data){
-		console.log('Bytes Received from ' + url + ': ' + data.byteLength);
+	console.log('Bytes Received from ' + url + ': ' + data.byteLength);
 });
 ```
 
@@ -182,7 +182,6 @@ in persisten storage.
 var url = 'https://s3.amazonaws.com/lr-chaos/videos/encoded_files/000/000/548/original/Hands-Elegant-Road-04-22-13.mp4';
 console.log('Retrieving data from ' + url);
 cs.getAndWrite(url, 'video.mp4', 'video/mp4', {create: true}, function(){
-		
 	console.log('Write video complete');
 });
 ```
