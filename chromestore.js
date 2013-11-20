@@ -1,10 +1,16 @@
 /*
     chromestore.js
 
+    Takes an optional, initial fileSchema which it creates
+    upon initialization.
+
+    fileSchema  [{path: 'path string', callback: callback function},
+                {path: 'path string', callback: callback function},
+                {path: 'path string', callback: callback function}]
 
 */
 var ChromeStore = (function(fileSchema) {
-    fileSchema = typeof fileSchema !== 'undefined' ? fileSchema : {};
+    fileSchema = typeof fileSchema !== 'undefined' ? fileSchema : [];
     var fs = null;
 
     function errorHandler(DOMError) {
@@ -38,6 +44,7 @@ var ChromeStore = (function(fileSchema) {
         /*
             Initialize chromestore
             Request persistent filesystem and amount of bytes
+            Create initial fileSchema if there is one
 
             requestedBytes  [int]: requested size of storage in bytes
             callback        [function]: function to be executed when initialization is complete.
@@ -48,12 +55,25 @@ var ChromeStore = (function(fileSchema) {
             //Store this in that to be be used inside nested functions
             var that = this; 
 
+            function createFileSchema(schema){
+                for (var key in schema){
+                    if(schema.hasOwnProperty(key)){
+                        var obj = schema[key];
+                        if(obj['path']){
+                            that.getDir(obj['path'], {create: true}, obj['callback']);
+                        }
+                    }
+                }
+            }
+
             function requestFS(grantedBytes) {
                 window.webkitRequestFileSystem(window.PERSISTENT, grantedBytes, function(filesystem) {
                     fs = filesystem;
                     console.log ('fs: ', arguments); // I see this on Chrome 27 in Ubuntu
                     console.log("Granted Bytes: " + grantedBytes);
                     console.log("**********************************");
+
+                    createFileSchema(fileSchema);
 
                     if(callback){callback(that);} //Execute callback
 

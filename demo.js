@@ -19,7 +19,7 @@ $(function(){
         $("video").attr("src", fileEntry.toURL());
     }
 
-    var cs = new ChromeStore();
+    var cs = new ChromeStore([ {path: 'videos/clips'}, {path: 'audio/wav', callback: function(){console.log('finished creating audio structure')}} ]);
     cs.init(1024*1024*1024);
 
 
@@ -42,3 +42,8 @@ $(function(){
     }); 
 
 });
+//Small
+//https://s3.amazonaws.com/lr-chaos/videos/files/000/000/835/original/sd_13_07_24_03_00_51_AM_20CD4970-CB19-431C-ABE4-431709D8FF8E.mp4?1374635835
+
+//Large
+//https://s3.amazonaws.com/lr-chaos/videos/encoded_files/000/000/548/original/Hands-Elegant-Road-04-22-13.mp4
