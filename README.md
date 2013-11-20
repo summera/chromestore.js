@@ -19,3 +19,7 @@ The API provides an easy to use interface for:
 </ul>
 
 Documentation: https://github.com/summera/chromestore.js/blob/master/chromestore-api.md
+
+Sources:
+http://www.html5rocks.com/en/tutorials/file/filesystem/
+http://www.w3.org/TR/file-system-api/
