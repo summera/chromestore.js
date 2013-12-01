@@ -102,6 +102,7 @@ function testUsedRemaining(cs){
     });
 }
 
+
 //Run tests
 function tests(cs){
     testwrite(cs);
@@ -120,7 +121,7 @@ function tests(cs){
 
 window.onload = function(){
 
-    var cs = new ChromeStore();
+    var cs = new ChromeStore([ {path: 'videos/clips'}, {path: 'audio/wav', callback: function(){console.log('finished creating audio structure')}} ]);
     cs.init(1024*1024*1024, tests);
     $("#purgeButton").on("click",function(){
         cs.purge();
