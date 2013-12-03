@@ -5,11 +5,16 @@
 ## Creating and Initializing Chromestore
 
 In order to use chromestore, it must be instantiated and initialized.
+Upon instantiation, one can pass in an initial file system schema to be 
+created upon initialization.  The initial file system schema is an array
+of javascript objects.  Each object has a path and an optional callback.  The callback
+will be executed once the corresponding folder tree has been created.
 
 ### Instantiation
 
 ```javascript
-var cs = new Chromestore();
+var cs = new Chromestore( [{path: 'videos/clips'}, 
+    {path: 'audio/wav', callback: function(){console.log('finished creating audio/wav folder tree')}}] );
 ```
 
 ### Initialization
@@ -156,6 +161,16 @@ cs.getFile('fileDelete.txt', {create: true, exclusive: true}, function(){
         cs.deleteFile('fileDelete.txt');
     });
 });
+```
+
+### Listing Files
+
+listFiles(pathToFile);
+Prints files at the end of the given path.
+Currently outputs list of files in console.
+
+```javascript
+cs.listFiles('genres/action');
 ```
 
 ## Getting and Receiving Data
