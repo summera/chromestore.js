@@ -353,7 +353,7 @@ var ChromeStore = (function(fileSchema) {
             path        [string]: path to be listed, defaults to root when not specified
             callback    [function]: function to be executed when file has been written
         */
-        listFiles: function(path,callback) {
+        ls: function(path,callback) {
             var dirReader;
             var arr = [];
             var rootDir = fs.root;
