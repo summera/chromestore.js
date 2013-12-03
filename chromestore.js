@@ -347,20 +347,42 @@ var ChromeStore = (function(fileSchema) {
         },
 
         /*
-            List all files that exists in local persistent storage
-            Outputs in console
-        */
-        listFiles: function(path) {
-            var dirReader = fs.root.createReader();
-            dirReader.readEntries(function(entries) {
-                if (!entries.length) {
-                    console.log('Filesystem is empty.');
-                }
+            List all files that exists in the specified path.
+            Outputs an array of objects
 
-                for (var i = 0, entry; entry = entries[i]; ++i) {
-                    console.log(entry.name);
-                }
-            }, errorHandler);
+            path        [string]: path to be listed, defaults to root when not specified
+            callback    [function]: function to be executed when file has been written
+        */
+        listFiles: function(path,callback) {
+            var dirReader;
+            var arr = [];
+            var rootDir = fs.root;
+            var pathArray = path.split('/');
+            var pLength = pathArray.length;
+            var pathToParent= "";
+
+            for(var i = 0; i<=pLength-1; i++){
+                pathToParent = pathToParent+pathArray[i]+"/";
+            }
+
+            rootDir.getDirectory(pathToParent,{},function(parentDir){
+                pathToParent = parentDir;
+                dirReader = (pathToParent) ? pathToParent.createReader() : fs.root.createReader();
+                dirReader.readEntries(function(entries) {
+                    if (!entries.length) {
+                        console.log('Filesystem is empty.');
+                    }
+
+                    for (var i = 0, entry; entry = entries[i]; ++i) {
+                        arr.push({
+                            name: entry.name, 
+                            fileEntry: entry.filesystem
+                        });
+                    }
+
+                    if(callback) callback(arr);
+                }, errorHandler);
+            },errorHandler);
         }
 
     };

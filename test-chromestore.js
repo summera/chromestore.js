@@ -102,6 +102,23 @@ function testUsedRemaining(cs){
     });
 }
 
+function testListFiles(cs){
+    //create dir
+    cs.getDir('genres/comedy', {create: true}, function(){
+        cs.write('genres/comedy/listedfiles1.txt', 'text/plain', 'test list files 1', {create: true});
+        cs.write('genres/comedy/listedfiles2.txt', 'text/plain', 'test list files 2', {create: true});
+        cs.write('genres/comedy/listedfiles3.txt', 'text/plain', 'test list files 3', {create: true});
+        
+        //list all files inside genres/comedy
+        cs.listFiles('genres/comedy', function(arr) {
+            var length = arr.length;
+            for(var i =0; i < length; ++i){
+                console.log(arr[i].name);
+            }
+        });
+    });
+}
+
 
 //Run tests
 function tests(cs){
@@ -114,6 +131,7 @@ function tests(cs){
     testDeleteFile(cs);
     testRenameFile(cs);
     testUsedRemaining(cs);
+    testListFiles(cs);
     //testGetData(cs);
     //testGetAndWrite(cs);
 }
