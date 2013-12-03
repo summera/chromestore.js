@@ -163,14 +163,25 @@ cs.getFile('fileDelete.txt', {create: true, exclusive: true}, function(){
 });
 ```
 
-### Listing Files
+### Listing Files and Directories
 
-listFiles(pathToFile);
-Prints files at the end of the given path.
-Currently outputs list of files in console.
+listFiles(pathToFile, callback);
+Prints files and directories at the end of the given path. Defaults to root when not specified.
+Returns an array of objects (name, fileEntry) to the callback function.
 
 ```javascript
-cs.listFiles('genres/action');
+cs.getDir('genres/comedy', {create: true}, function(){
+    cs.write('genres/comedy/listedfiles1.txt', 'text/plain', 'test list files 1', {create: true});
+    
+    //list all files inside genres/comedy
+    cs.listFiles('genres/comedy', function(arr) {
+        var length = arr.length;
+
+        for(var i =0; i < length; ++i){
+            console.log(arr[i].name);
+        }
+    });
+});
 ```
 
 ## Getting and Receiving Data
