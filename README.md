@@ -23,3 +23,5 @@ Documentation: https://github.com/summera/chromestore.js/blob/master/chromestore
 Sources:
 http://www.html5rocks.com/en/tutorials/file/filesystem/
 http://www.w3.org/TR/file-system-api/
+
+Cheers!
