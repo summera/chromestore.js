@@ -1,0 +1,24 @@
+{
+  "name": "chromestore.js",
+  "main": "chromestore.js",
+  "version": "0.1.1",
+  "homepage": "https://github.com/alexey-sh/chromestore.js",
+  "authors": [
+    "Ari Summer <aribsummer@gmail.com>",
+    "Alexey <alexey.sunshine@gmail.com>"
+  ],
+  "description": "Chromestore.js is a simple javascript filesystem API for the Chrome browser",
+  "keywords": [
+    "filesystem",
+    "api",
+    "chrome",
+    "html5"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "tests"
+  ]
+}
