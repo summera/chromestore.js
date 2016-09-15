@@ -22,7 +22,7 @@ interface Flags {
 
 
 
-module nebula {
+module fabvla {
 	
 	
 	export class ChromeStore {
