@@ -426,3 +426,5 @@ class DataReceiver {
     xhr.send();
   }
 }
+
+export { ChromeStore };
