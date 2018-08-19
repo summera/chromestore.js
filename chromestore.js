@@ -9,6 +9,7 @@
                 {path: 'path string', callback: callback function}]
 
 */
+
 window.PERSISTENT = null;
 
 class ChromeStore {
@@ -70,9 +71,10 @@ class ChromeStore {
    */
   getDir(path, flags, callback) {
     /** @function rootDir.getDirectory */
+    let that  = this;
     function recursiveCreate(path, callback, root) {
       path = (typeof path === 'object' ? path : path.split('/'));
-      let rootDir = root ? root : this.fs.root;
+      let rootDir = root ? root : that.fs.root;
 
       // Throw out './' or '/' and move on to prevent something like '/foo/.//bar'.
       if (path[0] === '.' || path[0] === '') {
@@ -269,7 +271,7 @@ class ChromeStore {
       url         [string]: URL path of the file to be downloaded
       callback    [function]: function to be executed when file has finished downloading
   */
-  static getData(url, callback) {
+  getData(url, callback) {
     let receiver = ChromeStore.createReceiver();
     receiver.getData(url, callback);
   }
@@ -287,7 +289,7 @@ class ChromeStore {
   */
   getAndWrite(url, path, fileType, flags, callback) {
     let that = this;
-    ChromeStore.getData(url, data => {
+    this.getData(url, data => {
       that.write(path, fileType, data, flags, callback)
     });
   }
