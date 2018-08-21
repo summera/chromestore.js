@@ -9,485 +9,422 @@
                 {path: 'path string', callback: callback function}]
 
 */
-var ChromeStore = (function(fileSchema) {
-    fileSchema = typeof fileSchema !== 'undefined' ? fileSchema : [];
-    var fs = null;
 
-    function errorHandler(DOMError) {
-        var msg = '';
+window.PERSISTENT = null;
 
-        switch (DOMError.name) {
-            case 'QuotaExceededError':
-                msg = 'QuotaExceededError';
-                break;
-            case 'NotFoundError':
-                msg = 'NotFoundError';
-                break;
-            case 'SecurityError':
-                msg = 'SecurityError';
-                break;
-            case 'InvalidModificationError':
-                msg = 'InvalidModificationError';
-                break;
-            case 'InvalidStateError':
-                msg = 'InvalidStateError';
-                break;
-            default:
-                msg = 'Unknown Error';
-                break;
-        };
-        console.log('Error: ' + msg);
+class ChromeStore {
+  constructor(fileSchema) {
+    this.fileSchema = typeof fileSchema !== 'undefined' ? fileSchema : [];
+    this.fs = null;
+  }
+
+  /**
+   * @param {int} requestedBytes - requested size of storage in bytes
+   * @param {function} callback - function to be executed when initialization is complete.
+   *                              passed reference to initialized chromestore.
+   */
+
+  init(requestedBytes, callback) {
+    let that = this;
+
+    function createFileSchema(schema) {
+      for (let key in schema) {
+        if (schema.hasOwnProperty(key)) {
+          let obj = schema[key];
+          if (obj['path']) that.getDir(obj['path'], {create: true}, obj['callback']);
+        }
+      }
     }
 
-    return {
+    function requestFS(grantedBytes) {
+      /** @function webkitRequestFileSystem */
+      window.webkitRequestFileSystem(window.PERSISTENT, grantedBytes, function (filesystem) {
+        that.fs = filesystem;
+        console.log('fs: ', arguments);
+        console.log(`Granted Bytes: ${grantedBytes}`);
+        createFileSchema(that.fileSchema);
+        if (callback) callback(that);
+      }, ChromeStore.errorHandler);
+    }
 
-        /*
-            Initialize chromestore
-            Request persistent filesystem and amount of bytes
-            Create initial fileSchema if there is one
+    /**
+     * @param requestedBytes
+     */
+    function getGranted(requestedBytes) {
+      /** @namespace navigator.webkitPersistentStorage */
+      /** @function navigator.webkitRequestFileSystem.requestQuota */
+      navigator.webkitPersistentStorage.requestQuota(requestedBytes, (grantedBytes) => {
+        console.log('requestQuota: ', arguments);
+        requestFS(grantedBytes, callback);
+      }, ChromeStore.errorHandler);
+    }
 
-            requestedBytes  [int]: requested size of storage in bytes
-            callback        [function]: function to be executed when initialization is complete.
-                                        passed reference to initialized chromestore.
-        */
-        init: function(requestedBytes, callback) {
+    getGranted(requestedBytes);
+  }
 
-            //Store this in that to be be used inside nested functions
-            var that = this; 
+  /**
+   *  Create/get directory or directories on filesystem.
+   *  Recursively creates directories on passed in path.
+   * @param {string} path - path of directories in which to create
+   * @param flags {object} - like a {create: true}
+   * @param {function} callback - function to be executed when directory has been created
+   */
+  getDir(path, flags, callback) {
+    /** @function rootDir.getDirectory */
+    let that  = this;
+    function recursiveCreate(path, callback, root) {
+      path = (typeof path === 'object' ? path : path.split('/'));
+      let rootDir = root ? root : that.fs.root;
 
-            function createFileSchema(schema){
-                for (var key in schema){
-                    if(schema.hasOwnProperty(key)){
-                        var obj = schema[key];
-                        if(obj['path']){
-                            that.getDir(obj['path'], {create: true}, obj['callback']);
-                        }
-                    }
-                }
-            }
+      // Throw out './' or '/' and move on to prevent something like '/foo/.//bar'.
+      if (path[0] === '.' || path[0] === '') {
+        path = path.slice(1);
+      }
 
-            function requestFS(grantedBytes) {
-                window.webkitRequestFileSystem(window.PERSISTENT, grantedBytes, function(filesystem) {
-                    fs = filesystem;
-                    console.log ('fs: ', arguments); // I see this on Chrome 27 in Ubuntu
-                    console.log("Granted Bytes: " + grantedBytes);
-                    console.log("**********************************");
+      rootDir.getDirectory(path[0], flags, dirEntry => {
+        // Recursively add the new sub-folder (if we still have another to create).
+        if (path.length - 1) {
+          recursiveCreate(path.slice(1), callback, dirEntry);
+        }
+        else {
+          if (callback) callback(dirEntry);
+        }
+      }, ChromeStore.errorHandler);
+    }
 
-                    createFileSchema(fileSchema);
-
-                    if(callback){callback(that);} //Execute callback
-
-                }, errorHandler);
-            }
-
-            function getGranted(requestedBytes){
-                navigator.webkitPersistentStorage.requestQuota (requestedBytes, function(grantedBytes) {
-                    console.log("==================================");
-                    console.log("PERSISTENT STORAGE");
-                    console.log("==================================");
-                    console.log("**********************************");
-                    console.log ('requestQuota: ', arguments);
-
-                    requestFS(grantedBytes, callback);
-
-                }, errorHandler);
-            }
+    recursiveCreate(path, callback);
+  }
 
 
-            getGranted(requestedBytes);
+  /**
+   *  Delete directory
+   *
+   * @param path [string]: path to directory in which to delete
+   * @param flags
+   * @param callback  [function]: function to be executed when directory has been deleted
+   */
+  deleteDir(path, flags = {}, callback) {
+    if (flags.recursive === undefined) flags.recursive = false;
 
-        },
+    let rootDir = this.fs.root;
+    /** @function dirEntry.removeRecursively */
+    rootDir.getDirectory(path, {}, dirEntry => {
+      if (flags.recursive) dirEntry.removeRecursively(() => {
+        if (callback) callback();
+      }, ChromeStore.errorHandler); else dirEntry.remove(() => {
+        if (callback) callback();
+      }, ChromeStore.errorHandler);
+    }, ChromeStore.errorHandler);
+  }
 
-        /*
-            Create/get directory or directories on filesystem.
-            Recursively creates directories on passed in path.
-            If directory already exists, one is not made.
+  /**
+   *
+   * @param path  [string]: path to directory in which to rename
+   * @param newName [string]: new name of directory
+   * @param callback  [function]: function to be executed when directory is renamed
+   */
+  renameDir(path, newName, callback) {
+    let rootDir = this.fs.root;
+    let pathArray = path.split('/');
+    let pLength = pathArray.length;
+    let pathToParent = "";
 
-            path        [string]: path of directories in which to create
-            callback    [function]: function to be executed when directory has been created
-        */
-        getDir: function(path, flags, callback) {
+    for (let i = 0; i <= pLength - 2; i++) {
+      pathToParent = `${pathToParent + pathArray[i]}/`;
+    }
 
-            function recursiveCreate(path, callback, root){
-                path = (typeof path === 'object' ? path : path.split('/'));
-                var rootDir = root ? root : fs.root;
+    rootDir.getDirectory(pathToParent, {}, parentDir => {
+      pathToParent = parentDir;
+    }, ChromeStore.errorHandler);
 
-                // Throw out './' or '/' and move on to prevent something like '/foo/.//bar'.
-                if (path[0] == '.' || path[0] == '') {
-                    path = path.slice(1);
-                }
+    rootDir.getDirectory(path, {}, dirEntry => {
+      dirEntry.moveTo(pathToParent, newName, newDir => {
+        console.log(`${path} Directory renamed.`);
 
-                rootDir.getDirectory(path[0], flags, function(dirEntry) {
-                    // Recursively add the new subfolder (if we still have another to create).
-                    if (path.length - 1) {
-                        recursiveCreate(path.slice(1), callback, dirEntry);
-                    }
-                    else {
-                        if(callback) callback(dirEntry);
-                    }
-                }, errorHandler);
-            }
+        //call callback function if specified
+        if (callback) callback(newDir);
+      }, ChromeStore.errorHandler);
+    }, ChromeStore.errorHandler);
+  }
 
-            recursiveCreate(path, callback);
-        },
 
-        /*
-            Delete directory
+  /*
 
-            path        [string]: path to directory in which to delete
-            callback    [function]: function to be executed when directory has been deleted
-        */
-        deleteDir: function(path, flags, callback){
 
-            var flags = flags || {};
-            if(flags.recursive === undefined) flags.recursive = false;
+      path
+      create
+      exclusive
+      callback    [function]: function to be executed when file is created. passed the FileEntry object
+  */
+  /**
+   * Create/get file
+   * Directory in which file is created must exist before  creating file
+   * @param path [string]: path to new file
+   * @param flags [boolean]: true creates the file if it doesn't exist,
+   * @param callback
+   */
+  getFile(path, flags, callback) {
+    this.fs.root.getFile(path, flags, fileEntry => {
+      if (callback) {
+        callback(fileEntry);
+      }
+    }, ChromeStore.errorHandler);
+  }
 
-            var rootDir = fs.root;
 
-            rootDir.getDirectory(path,{},function(dirEntry){
-                if(flags.recursive){
-                    dirEntry.removeRecursively(function(){
-                        
-                        //call callback function if specified
-                        if(callback) callback();
-                    }, errorHandler);
-                }
-                else{
-                    dirEntry.remove(function(){
-                        
-                        //call callback function if specified
-                        if(callback) callback();
-                    }, errorHandler);
-                }
-            }, errorHandler);
-        },
+  /**
+   * Delete file
+   * @param path [string]: path to file in which to delete
+   */
+  deleteFile(path) {
+    this.fs.root.getFile(path, {create: false}, fileEntry => {
+      fileEntry.remove(() => {
+      }, ChromeStore.errorHandler);
+    }, ChromeStore.errorHandler);
+  }
 
-        /*
-            Rename directory
 
-            path        [string]: path to directory in which to rename
-            newName     [string]: new name of directory
-            callback    [function]: function to be executed when directory is renamed
-        */
-        renameDir: function(path, newName, callback) {
-            var rootDir = fs.root;
-            var pathArray = path.split('/');
-            var pLength = pathArray.length;
-            var pathToParent="";
+  /*
+      Rename file
 
-            for(var i = 0; i<=pLength-2; i++){
-                pathToParent = pathToParent+pathArray[i]+"/";
-            }
+      path        [string]: path to file in which to rename
+      newName     [string]: new name of file
+      callback    [function]: function in which to execute when file is renamed.
+                              passed the FileEntry object
+  */
+  renameFile(path, newName, callback) {
+    let rootDir = this.fs.root;
+    let pathArray = path.split('/');
+    let pLength = pathArray.length;
+    let pathToParent = "";
 
-            rootDir.getDirectory(pathToParent,{},function(parentDir){
-                pathToParent = parentDir;
-            },errorHandler);
+    for (let i = 0; i <= pLength - 2; i++) {
+      pathToParent = `${pathToParent + pathArray[i]}/`;
+    }
 
-            rootDir.getDirectory(path,{},function(dirEntry){
-                dirEntry.moveTo(pathToParent,newName,function(newDir) {
-                    console.log(path + ' Directory renamed.');
-                    
-                    //call callback function if specified
-                    if(callback) callback(newDir);
-                }, errorHandler);
-            }, errorHandler);
-        },
+    rootDir.getDirectory(pathToParent, {}, parentDir => {
+      pathToParent = parentDir;
+    }, ChromeStore.errorHandler);
 
-        /*  
-            Create/get file 
-            Directory in which file is created must exist before
-            creating file
+    this.fs.root.getFile(path, {}, fileEntry => {
+      fileEntry.moveTo(pathToParent, newName, () => {
+        console.log('File renamed');
 
-            path        [string]: path to new file
-            create      [boolean]: true creates the file if it doesn't exist,
-            exclusive   [boolean]: true will throw an error if file already exists, false will overwrite contents
-            callback    [function]: function to be executed when file is created. passed the FileEntry object
-        */
-        getFile: function(path, flags, callback) {
-            fs.root.getFile(path, flags, function(fileEntry) {
-                if(callback) {callback(fileEntry);}
-            }, errorHandler);
-        },
+        //call callback function if specified
+        if (callback) callback(fileEntry);
+      }, ChromeStore.errorHandler);
+    }, ChromeStore.errorHandler);
+  }
 
-        /*
-            Delete file
 
-            path [string]: path to file in wich to delete
-        */
-        deleteFile: function(path) {
-            fs.root.getFile(path, {create: false}, function(fileEntry) {
+  /**
+   *
+   * @param callback [function]: function to be executed when used and remaining bytes have been received
+   *                             from filesystem.  passed the number of used and remaining bytes
+   * @function navigator.webkitPersistentStorage.queryUsageAndQuota
+   */
+  usedAndRemaining(callback) {
+    navigator.webkitPersistentStorage.queryUsageAndQuota((used, remaining) => {
+      if (callback) callback(used, remaining);
+    });
+  }
 
-                fileEntry.remove(function() {
-                
-                }, errorHandler);
 
-            }, errorHandler);
-        },
+  /**
+   *  Create new FileWriter object and returns it to the caller
+   * @returns {FileWriter}
+   */
+  createWriter() {
+    return new FileWriter(this.fs);
+  }
 
-        /*
-            Rename file
 
-            path        [string]: path to file in which to rename
-            newName     [string]: new name of file
-            callback    [function]: function in which to execute when file is renamed. 
-                                    passed the FileEntry object
-        */
-        renameFile: function(path, newName, callback) {
-            var rootDir = fs.root;
-            var pathArray = path.split('/');
-            var pLength = pathArray.length;
-            var pathToParent= "";
+  /**
+   *  Write to a file
+   *  If file does not exist, createFlag must be set to True
+   *
+   * @param {string} path - path of file in which to write / create
+   * @param {string} fileType - type of file (eg. video/mp4, application/text)
+   * @param {string} data - blob to be written to the file
+   * @param {boolean} flags - create new file
+   * @param {function} callback - function to be executed when data has been written
+   */
+  write(path, fileType, data, flags, callback) {
+    let fw = this.createWriter();
+    fw.writeData(path, fileType, data, flags, callback);
+  }
 
-            for(var i = 0; i<=pLength-2; i++){
-                pathToParent = pathToParent+pathArray[i]+"/";
-            }
 
-            rootDir.getDirectory(pathToParent,{},function(parentDir){
-                pathToParent = parentDir;
-            },errorHandler);
+  /**
+   * Create new DataReceiver object and returns it to the caller
+   * @returns {DataReceiver}
+   */
+  static createReceiver() {
+    return new DataReceiver();
+  }
 
-            fs.root.getFile(path, {}, function(fileEntry){
-                fileEntry.moveTo(pathToParent, newName,function(){
-                    console.log('File renamed');
 
-                    //call callback function if specified
-                    if(callback) callback(fileEntry);
-                }, errorHandler);
-            }, errorHandler);
-        },
+  /*
+      Get data from a specified url
+      Returns a function with 'data' parameter
 
-        /*
-            Return the number of used and remaining bytes in filesystem
+      url         [string]: URL path of the file to be downloaded
+      callback    [function]: function to be executed when file has finished downloading
+  */
+  getData(url, callback) {
+    let receiver = ChromeStore.createReceiver();
+    receiver.getData(url, callback);
+  }
 
-            callback [function]: function to be executed when used and remaining bytes have been received
-                                    from filesystem.  passed the number of used and remaining bytes
-        */
-        usedAndRemaining: function(callback) {
-            navigator.webkitPersistentStorage.queryUsageAndQuota(function (used, remaining){
-                if(callback){callback(used, remaining);}
-            });
-        },
 
-        /*
-            Create new FileWriter object and returns it to the caller
-        */
-        createWriter: function() {
-            var fw = new FileWriter(fs);
-            return fw;
-        },
+  /*
+      Get data from a URL and store it in local persistent storage
+      Calls getData and write in sequence
 
-        /*
-            Write to a file
-            If file does not exist, createFlag must be set to True
+      url         [string]: URL path of the file to be downloaded
+      path        [string]: path of file in which to write / create
+      fileType    [string]: type of file (eg. video/mp4, application/text)
+      createFlag  [boolean]: create new file
+      callback    [function]: function to be executed when file has been written
+  */
+  getAndWrite(url, path, fileType, flags, callback) {
+    let that = this;
+    this.getData(url, data => {
+      that.write(path, fileType, data, flags, callback)
+    });
+  }
 
-            path        [string]: path of file in which to write / create
-            fileType    [string]: type of file (eg. video/mp4, application/text)
-            data        [string]: blob to be written to the file
-            createFlag  [boolean]: create new file
-            callback    [function]: function to be executed when data has been written
 
-        */
-        write: function(path, fileType, data, flags, callback) {
-            var fw = this.createWriter();
-            fw.writeData(path, fileType, data, flags, callback);
-        },
-        
-        /*
-            Create new DataReceiver object and returns it to the caller
-        */
-        createReceiver: function() {
-            var receiver = new DataReceiver();
-            return receiver;
-        },
+  /*
+      Delete all files and directories that already exists in local persistent storage
+  */
+  purge() {
+    let dirReader = this.fs.root.createReader();
+    dirReader.readEntries(entries => {
+      for (let i = 0, entry; entry = entries[i]; ++i) {
+        if (entry.isDirectory) {
+          entry.removeRecursively(() => {
+          }, ChromeStore.errorHandler);
+        } else {
+          entry.remove(() => {
+          }, ChromeStore.errorHandler);
+        }
+      }
+      console.log('Local storage emptied.');
+    }, ChromeStore.errorHandler);
+  }
 
-        /*
-            Get data from a specified url
-            Returns a function with 'data' parameter
 
-            url         [string]: URL path of the file to be downloaded
-            callback    [function]: function to be executed when file has finished downloading
-        */
-        getData: function(url, callback) {
-            var receiver = this.createReceiver();
-            receiver.getData(url, callback);
-        },
+  /*
+      List all files that exists in the specified path.
+      Outputs an array of objects
 
-        /*
-            Get data from a URL and store it in local persistent storage
-            Calls getData and write in sequence
+      path        [string]: path to be listed, defaults to root when not specified
+      callback    [function]: function to be executed when file has been written
+  */
+  ls(path, callback) {
+    let dirReader;
+    let arr = [];
+    let rootDir = this.fs.root;
+    let pathArray = path.split('/');
+    let pLength = pathArray.length;
+    let pathToParent = "";
 
-            url         [string]: URL path of the file to be downloaded
-            path        [string]: path of file in which to write / create
-            fileType    [string]: type of file (eg. video/mp4, application/text)
-            createFlag  [boolean]: create new file
-            callback    [function]: function to be executed when file has been written
-        */
-        getAndWrite: function(url, path, fileType, flags, callback) {
-            var that = this;
-            this.getData(url, function(data){
-                that.write(path, fileType, data, flags, callback)
-            });
-        },
+    for (let i = 0; i <= pLength - 1; i++) {
+      pathToParent = `${pathToParent + pathArray[i]}/`;
+    }
 
-        /*
-            Delete all files and directories that already exists in local persistent storage
-        */
-        purge: function() {
-            var dirReader = fs.root.createReader();
-            dirReader.readEntries(function(entries) {
-                for (var i = 0, entry; entry = entries[i]; ++i) {
-                    if (entry.isDirectory) {
-                        entry.removeRecursively(function() {}, errorHandler);
-                    } else {
-                        entry.remove(function() {}, errorHandler);
-                    }
-                }
-                console.log('Local storage emptied.');
-            }, errorHandler);
-        },
-
-        /*
-            List all files that exists in the specified path.
-            Outputs an array of objects
-
-            path        [string]: path to be listed, defaults to root when not specified
-            callback    [function]: function to be executed when file has been written
-        */
-        ls: function(path,callback) {
-            var dirReader;
-            var arr = [];
-            var rootDir = fs.root;
-            var pathArray = path.split('/');
-            var pLength = pathArray.length;
-            var pathToParent= "";
-
-            for(var i = 0; i<=pLength-1; i++){
-                pathToParent = pathToParent+pathArray[i]+"/";
-            }
-
-            rootDir.getDirectory(pathToParent,{},function(parentDir){
-                pathToParent = parentDir;
-                dirReader = (pathToParent) ? pathToParent.createReader() : fs.root.createReader();
-                dirReader.readEntries(function(entries) {
-                    if (!entries.length) {
-                        console.log('Filesystem is empty.');
-                    }
-
-                    for (var i = 0, entry; entry = entries[i]; ++i) {
-                        arr.push({
-                            name: entry.name, 
-                            fileEntry: entry.filesystem
-                        });
-                    }
-
-                    if(callback) callback(arr);
-                }, errorHandler);
-            },errorHandler);
+    rootDir.getDirectory(pathToParent, {}, parentDir => {
+      pathToParent = parentDir;
+      dirReader = (pathToParent) ? pathToParent.createReader() : fs.root.createReader();
+      dirReader.readEntries(entries => {
+        if (!entries.length) {
+          console.log('Filesystem is empty.');
         }
 
+        for (let i = 0, entry; entry = entries[i]; ++i) {
+          arr.push({
+            name: entry.name,
+            fileEntry: entry.filesystem
+          });
+        }
+
+        if (callback) callback(arr);
+      }, ChromeStore.errorHandler);
+    }, ChromeStore.errorHandler);
+  }
+
+  static errorHandler(DOMError) {
+    let msg = '';
+
+    if (DOMError.name === 'QuotaExceededError') msg = 'QuotaExceededError';
+    else if (DOMError.name === 'NotFoundError') msg = 'NotFoundError';
+    else if (DOMError.name === 'SecurityError') msg = 'SecurityError';
+    else if (DOMError.name === 'InvalidModificationError') msg = 'InvalidModificationError';
+    else if (DOMError.name === 'InvalidStateError') msg = 'InvalidStateError';
+    else msg = 'Unknown Error';
+
+    console.error(msg);
+  }
+}
+
+class FileWriter {
+  constructor(filesystem) {
+    this.filesystem = filesystem;
+  }
+
+  static errorHandler(DOMError) {
+    let msg = '';
+    if (DOMError.name === 'QuotaExceededError') msg = 'QuotaExceededError';
+    else if (DOMError.name === 'NotFoundError') msg = 'NotFoundError';
+    else if (DOMError.name === 'SecurityError') msg = 'SecurityError';
+    else if (DOMError.name === 'InvalidModificationError') msg = 'InvalidModificationError';
+    else if (DOMError.name === 'InvalidStateError') msg = 'InvalidStateError';
+    else msg = 'Unknown Error';
+    console.error(`Error: ${msg}`);
+  }
+
+  writeData(path, fileType, data, flags, callback) {
+    this.filesystem.root.getFile(path, flags, fileEntry => {
+      /** @function fileEntry.createWriter */
+      // Create a FileWriter object for our FileEntry (log.txt).
+      fileEntry.createWriter(fileWriter => {
+        /** @function fileWriter.onwriteend */
+        fileWriter.onwriteend = () => {
+          console.log('Write completed.');
+          if (callback) callback(fileEntry);
+        };
+
+        fileWriter.onerror = e => {
+          console.log(`Write failed: ${e.toString()}`);
+        };
+        // Create a new Blob and write it to log.txt.
+        let blob = new Blob([data], {type: fileType});
+        fileWriter.write(blob);
+      }, FileWriter.errorHandler);
+    }, FileWriter.errorHandler);
+  }
+}
+
+class DataReceiver {
+  /**
+   *
+   * @param {string} url - URL path of the file to be downloaded
+   * @param {function} callback - function to be executed when file has finished downloading
+   */
+  getData(url, callback) {
+    let xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.responseType = "arraybuffer";
+
+    xhr.onload = function (e) {
+      if (this.status === 200) {
+        callback(this.response);
+      }
     };
 
-});
+    xhr.send();
+  }
+}
 
-/*
-    FileWriter Object
-    method: writeData
-*/
-var FileWriter = (function(filesystem) {
-    var fs = filesystem;
-    function errorHandler(DOMError) {
-        var msg = '';
-
-        switch (DOMError.name) {
-            case 'QuotaExceededError':
-                msg = 'QuotaExceededError';
-                break;
-            case 'NotFoundError':
-                msg = 'NotFoundError';
-                break;
-            case 'SecurityError':
-                msg = 'SecurityError';
-                break;
-            case 'InvalidModificationError':
-                msg = 'InvalidModificationError';
-                break;
-            case 'InvalidStateError':
-                msg = 'InvalidStateError';
-                break;
-            default:
-                msg = 'Unknown Error';
-                break;
-        };
-        console.log('Error: ' + msg);
-    }
-
-    return {
-        /*
-            Write data to a file
-            If file does not exist, createFlag must be set to True
-            If file already exists and createFlag is set to True, its content will be overwritten
-
-            path        [string]: path of file in which to write / create
-            fileType    [string]: type of file (eg. video/mp4, application/text)
-            data        [string]: blob to be written to the file
-            createFlag  [boolean]: create new file
-            callback    [function]: function to be executed when data has been written
-        */
-        writeData: function(path, fileType, data, flags, callback){
-            fs.root.getFile(path, flags, function(fileEntry) {
-
-                // Create a FileWriter object for our FileEntry (log.txt).
-                fileEntry.createWriter(function(fileWriter) {
-
-                    fileWriter.onwriteend = function(e) {
-                        console.log('Write completed.');
-                        if(callback) {callback(fileEntry);}
-                    };
-
-                    fileWriter.onerror = function(e) {
-                        console.log('Write failed: ' + e.toString());
-                    };
-
-                    // Create a new Blob and write it to log.txt.
-                    var blob = new Blob([data], {type: fileType});
-
-                    fileWriter.write(blob);
-                    
-                }, errorHandler);
-
-            }, errorHandler);
-        }
-    }
-});
-
-/*
-    DataReceiver object
-    Method: getData
-*/
-var DataReceiver = (function() {
-
-    return {
-
-        /*
-            Get data from a specified url
-            Returns a function with 'data' parameter
-
-            url         [string]: URL path of the file to be downloaded
-            callback    [function]: function to be executed when file has finished downloading
-        */
-        getData: function(url, callback){
-            var xhr = new XMLHttpRequest(); 
-            xhr.open('GET', url, true); 
-            xhr.responseType = "arraybuffer";
-
-            xhr.onload = function(e) {
-                if(this.status == 200) {
-                    callback(this.response);
-                }
-            }
-
-            xhr.send();
-        }
-    }
-
-});
+export { ChromeStore };
